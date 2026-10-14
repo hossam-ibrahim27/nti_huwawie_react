@@ -3,6 +3,7 @@ import { ArrowUp, BookOpenCheck, ChevronDown, FileSearch, ShieldCheck , Mic, Squ
 import type { AskResponse } from "~/interfaces/clinical";
 import { askQuestion, transcribeAudio } from "~/services/api";
 import { useVoiceRecorder } from "~/lib/useVoiceRecorder";
+import ReactMarkdown from "react-markdown";
 
 const confidenceStyle: Record<string, string> = {
   high: "bg-green-100 text-green-700 dark:bg-green-400/10 dark:text-green-300",
@@ -199,7 +200,7 @@ const voice = useVoiceRecorder(handleRecorded);
               {result.refused ? "Not answered" : "Recommendation"}
             </h2>
 
-            <p
+            {/* <p
               className={`whitespace-pre-line rounded-2xl p-4 text-[15px] leading-relaxed ${
                 result.refused
                   ? "bg-amber-50 text-amber-900 dark:bg-amber-400/10 dark:text-amber-100"
@@ -207,7 +208,16 @@ const voice = useVoiceRecorder(handleRecorded);
               }`}
             >
               {result.answer}
-            </p>
+            </p> */}
+            <div
+                className={`answer-md rounded-2xl p-4 text-[15px] leading-relaxed ${
+                  result.refused
+                    ? "bg-amber-50 text-amber-900 dark:bg-amber-400/10 dark:text-amber-100"
+                    : "bg-emerald-50 text-emerald-950 dark:bg-emerald-400/10 dark:text-emerald-50"
+                }`}
+              >
+                <ReactMarkdown>{result.answer}</ReactMarkdown>
+            </div>
 
             {result.warning && (
               <p className="mt-3 flex items-start gap-2 rounded-xl bg-yellow-50 p-3 text-sm text-yellow-800 dark:bg-yellow-400/10 dark:text-yellow-200">
