@@ -3,7 +3,7 @@ import Services from "~/components/Services";
 import CtaBanner from "~/components/CtaBanner";
 
 export function meta() {
-  return [{ title: "VisionAI" }];
+  return [{ title: "Lumina" }];
 }
 
 export default function Home() {

@@ -18,7 +18,7 @@ export default function Footer() {
         <div>
           <p className="flex items-center gap-2 text-xl font-bold text-white">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-sm text-emerald-400">✳</span>
-            VisionAI
+            Lumina
           </p>
           <p className="mt-3 max-w-sm text-sm text-slate-400">
             Evidence-based answers on cataract care, grounded in the NICE guideline on cataracts in adults (NG77).

@@ -27,3 +27,17 @@ export async function detectImage(file: File): Promise<DetectResponse> {
   }
   return res.json();
 }
+
+export async function transcribeAudio(blob: Blob, language?: string): Promise<string> {
+  const form = new FormData();
+  form.append("file", blob, "voice"); // the blob's own MIME type is sent with it
+
+  const query = language ? `?language=${encodeURIComponent(language)}` : "";
+  const res = await fetch(`${API_URL}/api/v1/transcribe${query}`, { method: "POST", body: form });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.detail ?? "Transcription failed. Please try again.");
+  }
+  const data = await res.json();
+  return data.text as string;
+}

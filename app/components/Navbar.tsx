@@ -20,7 +20,7 @@ export default function Navbar() {
             <span className="grid h-8 w-8 place-items-center rounded-full bg-ink text-sm text-emerald-400 dark:bg-slate-800">
               ✳
             </span>
-            VisionAI
+            Lumina
           </NavLink>
 
           <ul className="hidden items-center gap-8 text-[15px] md:flex">

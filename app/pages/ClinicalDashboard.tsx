@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ArrowUp, BookOpenCheck, ChevronDown, FileSearch, ShieldCheck } from "lucide-react";
-import { askQuestion } from "~/services/api";
+import { ArrowUp, BookOpenCheck, ChevronDown, FileSearch, ShieldCheck , Mic, Square} from "lucide-react";
 import type { AskResponse } from "~/interfaces/clinical";
+import { askQuestion, transcribeAudio } from "~/services/api";
+import { useVoiceRecorder } from "~/lib/useVoiceRecorder";
 
 const confidenceStyle: Record<string, string> = {
   high: "bg-green-100 text-green-700 dark:bg-green-400/10 dark:text-green-300",
@@ -12,14 +13,19 @@ const confidenceStyle: Record<string, string> = {
 
 const suggestions = [
   "What types of anaesthesia are recommended for cataract surgery?",
-  "When should cataract surgery be offered?",
-  "What checks prevent wrong-lens errors on the day of surgery?",
   "What Capital City in Egypt?",
-  "What information should be given to patients at the preoperative appointment before cataract surgery?"
+  "Which biometry technique should be used to measure the axial length of the eye?",
+  "When should bilateral simultaneous cataract surgery be considered?",
+  "Best diet plan for losing weight fast?",
+  "Which biometry formulas are recommended for calculating intraocular lens power based on axial length?"
 ];
 
 const card =
   "rounded-3xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60";
+// "en" = English. Use "ar" for Arabic, or remove it to let Whisper auto-detect.
+const VOICE_LANG = "en";
+
+const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 export default function ClinicalDashboard() {
   const [question, setQuestion] = useState("");
@@ -45,7 +51,27 @@ export default function ClinicalDashboard() {
     setQuestion(s);
     handleAsk(s);
   }
+  const [transcribing, setTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
 
+  async function handleRecorded(blob: Blob) {
+    setTranscribing(true);
+    setVoiceError(null);
+    try {
+      const text = await transcribeAudio(blob, VOICE_LANG);
+      if (!text) {
+        setVoiceError("I couldn't hear anything. Please try again.");
+        return;
+      }
+      setQuestion(text); // the user reviews it, then presses Ask
+    } catch (e) {
+      setVoiceError(e instanceof Error ? e.message : "Transcription failed. Please try again.");
+    } finally {
+      setTranscribing(false);
+    }
+  }
+
+const voice = useVoiceRecorder(handleRecorded);
   return (
     <div className="grid items-start gap-6 pt-8 lg:grid-cols-[1.7fr_1fr]">
       {/* Left column: question + answer */}
@@ -59,31 +85,71 @@ export default function ClinicalDashboard() {
             <h1 className="text-xl font-bold tracking-tight">Ask a Clinical Question</h1>
           </div>
 
-          <div className="mt-5 flex gap-3">
-            <input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-              placeholder="e.g. What types of anaesthesia are recommended for cataract surgery?"
-              className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-brand/10 dark:border-white/10 dark:bg-slate-950/50 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
-            />
-            <button
-              onClick={() => handleAsk()}
-              disabled={loading}
-              className="inline-flex min-w-28 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  Thinking
-                </>
-              ) : (
-                <>
-                  Ask <ArrowUp size={16} />
-                </>
-              )}
-            </button>
-          </div>
+    <div className="mt-5 flex gap-3">
+      {voice.recording ? (
+        <div className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-300">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+          </span>
+          <span className="font-medium tabular-nums">Recording {formatTime(voice.seconds)}</span>
+          <button type="button" onClick={voice.cancel} className="ml-auto cursor-pointer text-xs underline">
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAsk()}
+          disabled={transcribing}
+          placeholder={
+            transcribing
+              ? "Transcribing your question..."
+              : "e.g. What types of anaesthesia are recommended for cataract surgery?"
+          }
+          className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-brand focus:ring-4 focus:ring-brand/10 disabled:opacity-60 dark:border-white/10 dark:bg-slate-950/50 dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:ring-blue-400/10"
+        />
+      )}
+
+      {voice.supported && (
+        <button
+          type="button"
+          onClick={voice.recording ? voice.stop : voice.start}
+          disabled={loading || transcribing}
+          aria-label={voice.recording ? "Stop recording" : "Ask by voice"}
+          title={voice.recording ? "Stop recording" : "Ask by voice"}
+          className={`grid w-12 shrink-0 cursor-pointer place-items-center rounded-2xl border transition disabled:cursor-not-allowed disabled:opacity-50 ${
+            voice.recording
+              ? "border-red-500 bg-red-500 text-white hover:brightness-110"
+              : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand dark:border-white/10 dark:bg-slate-950/50 dark:text-slate-300 dark:hover:border-blue-400/40 dark:hover:text-blue-300"
+          }`}
+        >
+          {voice.recording ? <Square size={16} className="fill-current" /> : <Mic size={18} />}
+        </button>
+      )}
+
+      <button
+        onClick={() => handleAsk()}
+        disabled={loading || voice.recording || transcribing}
+        className="inline-flex min-w-28 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {loading ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            Thinking
+          </>
+        ) : (
+          <>
+            Ask <ArrowUp size={16} />
+          </>
+        )}
+      </button>
+    </div>
+
+    {(voice.error || voiceError) && (
+      <p className="mt-2 text-sm text-red-600 dark:text-red-400">{voice.error ?? voiceError}</p>
+    )}
 
           <div className="mt-4 flex flex-wrap gap-2">
             {suggestions.map((s) => (

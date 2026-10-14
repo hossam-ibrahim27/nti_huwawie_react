@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { ArrowRight, BookOpenCheck, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenCheck, Eye, ShieldCheck, Sparkles } from "lucide-react";
 
 const stats = [
   { value: "NG77", label: "Single trusted source" },
@@ -45,12 +45,13 @@ export default function Hero() {
               Ask the Assistant
               <ArrowRight size={16} className="transition group-hover:translate-x-1" />
             </Link>
-            <a
-              href="#services"
-              className="inline-flex items-center rounded-full border border-slate-300 bg-white/70 px-7 py-3.5 text-sm font-semibold transition hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+            <Link
+              to="/eye-detection"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white/70 px-7 py-3.5 text-sm font-semibold transition hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
             >
-              Browse topics
-            </a>
+              <Eye size={16} />
+              Try Cataract Detection
+            </Link>
           </div>
 
           <dl className="mt-12 grid max-w-xl grid-cols-3 gap-6 border-t border-slate-200 pt-8 dark:border-white/10">

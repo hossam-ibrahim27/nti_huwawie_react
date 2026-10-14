@@ -3,7 +3,7 @@ import type { DragEvent } from "react";
 import { Eye, ShieldCheck, Upload, X } from "lucide-react";
 import { detectImage } from "~/services/api";
 import type { DetectResponse } from "~/interfaces/detection";
-import { SEVERITY_STYLE, getClass } from "~/lib/eyeClasses";
+import { SEVERITY_LABEL, SEVERITY_RANK, SEVERITY_STYLE, getClass } from "~/lib/eyeClasses";
 
 const card =
   "rounded-3xl border border-white/60 bg-white/80 p-6 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/60";
@@ -69,10 +69,10 @@ export default function EyeDetection() {
     }
   }
 
-  // أخطر نتيجة هي اللي تحدد الـ banner
+  // أخطر نتيجة هي اللي تحدد الـ banner (urgent > monitor > ok)
   const worst = result?.detections
     .map((d) => ({ d, info: getClass(d.class_id, d.class_name) }))
-    .sort((a, b) => Number(b.info.severity === "urgent") - Number(a.info.severity === "urgent"))[0];
+    .sort((a, b) => SEVERITY_RANK[b.info.severity] - SEVERITY_RANK[a.info.severity])[0];
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pt-8">
@@ -82,7 +82,7 @@ export default function EyeDetection() {
           <span className="grid h-10 w-10 place-items-center rounded-2xl bg-brand/10 text-brand dark:bg-blue-400/10 dark:text-blue-300">
             <Eye size={20} />
           </span>
-          <h1 className="text-xl font-bold tracking-tight">Cataract Detection</h1>
+          <h1 className="text-xl font-bold tracking-tight">Eye Image Detection</h1>
         </div>
 
         <input
@@ -244,7 +244,7 @@ export default function EyeDetection() {
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${SEVERITY_STYLE[info.severity].tag}`}
                       >
-                        {info.severity === "urgent" ? "Urgent" : "Monitor"}
+                        {SEVERITY_LABEL[info.severity]}
                       </span>
                     </div>
                     <p className="mt-2 font-semibold">{info.label}</p>

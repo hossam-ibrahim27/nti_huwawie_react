@@ -125,4 +125,8 @@ The ids must match the class order used when the model was trained (the `data.ya
 ## Credits
 
 - [NICE guideline NG77: Cataracts in adults](https://www.nice.org.uk/guidance/ng77)
+HEAD
 - [React Router](https://reactrouter.com), [Tailwind CSS](https://tailwindcss.com), [lucide](https://lucide.dev)
+=======
+- [React Router](https://reactrouter.com), [Tailwind CSS](https://tailwindcss.com), [lucide](https://lucide.dev)
+>>>>>>> 3f576a5 (Add voice input transcription endpoint (Groq Whisper))
